@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+model DCharacter {
+  codename String @id @db.VarChar(50)
+  labelRu  String @map("label_ru") @db.VarChar(50)
+  labelEn  String @map("label_en") @db.VarChar(50)
+  users    User[] @relation("d_charactersTousers")
+
+  @@map("d_characters")
+}
+
+model Match {
+  id                 Int         @id @default(autoincrement())
+  challengerUsername String      @map("challenger_username") @db.VarChar(50)
+  challengerScore    Int?        @map("challenger_score")
+  challengedUsername String      @map("challenged_username") @db.VarChar(50)
+  challengedScore    Int?        @map("challenged_score")
+  status             MatchStatus
+  submittedBy        PlayerType? @map("submitted_by")
+  winner             PlayerType?
+  winnerDelta        Int?        @map("winner_delta")
+  firstTo            Int         @map("first_to")
+  challenger_comment String?
+  declined_comment   String?
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt          DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  resultSubmittedAt  DateTime?   @map("result_submitted_at") @db.Timestamp(6)
+  challengedUser     User        @relation("matches_challenged_usernameTousers", fields: [challengedUsername], references: [username])
+  challengerUser     User        @relation("matches_challenger_usernameTousers", fields: [challengerUsername], references: [username])
+
+  @@map("matches")
+}
+
+model Schemaversion {
+  version BigInt    @id
+  name    String?
+  md5     String?
+  runAt   DateTime? @map("run_at") @db.Timestamptz(6)
+
+  @@map("schemaversion")
+}
+
+model Season {
+  id           Int           @id @default(autoincrement())
+  label        String        @db.VarChar(50)
+  startedAt    DateTime      @default(now()) @map("started_at") @db.Timestamp(6)
+  finishedAt   DateTime?     @map("finished_at") @db.Timestamp(6)
+  isCurrent    Boolean       @default(true) @map("is_current")
+  usersSeasons UsersSeason[] @relation("seasonsTousers_seasons")
+
+  @@map("seasons")
+}
+
+model User {
+  username              String        @id @db.VarChar(50)
+  email                 String        @unique @db.VarChar(100)
+  password              String        @db.VarChar(100)
+  character             String        @db.VarChar(50)
+  steamUrl              String        @map("steam_url") @db.VarChar(150)
+  otherInfo             String?       @map("other_info")
+  emailConfirmed        Boolean       @default(false) @map("email_confirmed")
+  createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt             DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  failedLoginAttempt    Int?          @default(0) @map("failed_login_attempts")
+  failedLoginTime       DateTime?     @map("failed_login_time") @db.Timestamp(6)
+  forgotPasswordTime    DateTime?     @map("forgot_password_time") @db.Timestamp(6)
+  dCharacter            DCharacter    @relation("d_charactersTousers", fields: [character], references: [codename])
+  challengedUserMatches Match[]       @relation("matches_challenged_usernameTousers")
+  challengerUserMatches Match[]       @relation("matches_challenger_usernameTousers")
+  usersSeasons          UsersSeason[] @relation("usersTousers_seasons")
+
+  @@map("users")
+}
+
+model UsersSeason {
+  id       Int    @id @default(autoincrement())
+  username String @db.VarChar(50)
+  seasonId Int    @map("season_id")
+  rating   Int
+  win      Int    @default(0) @map("wins")
+  lose     Int    @default(0) @map("loses")
+  season   Season @relation("seasonsTousers_seasons", fields: [seasonId], references: [id])
+  user     User   @relation("usersTousers_seasons", fields: [username], references: [username])
+
+  @@map("users_seasons")
+}
+
+enum MatchStatus {
+  confirmingMatch @map("CONFIRMING_MATCH")
+  declined @map("DECLINED")
+  inProgress @map("IN_PROGRESS")
+  confirmingScore @map("CONFIRMING_SCORE")
+  finished @map("FINISHED")
+
+   @@map("match_status")
+}
+
+enum PlayerType {
+  challenger @map("CHALLENGER")
+  challenged @map("CHALLENGED")
+
+   @@map("player_type")
+}

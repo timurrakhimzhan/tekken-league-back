@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: tekken-league-api
+    networks:
+      - tekken-league-network
+    build:
+      context: .
+      target: development
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_URL=${DB_URL_DOCKER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 3001:3001
+    depends_on:
+      - db
+    command: npm run start:debug
+    volumes:
+      - ./:/node
+      - /node/node_modules
+
+  db:
+    container_name: tekken-league-db
+    image: postgres:13-alpine
+    networks:
+      - tekken-league-network
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+networks:
+  tekken-league-network:
+    name: tekken-league-network
