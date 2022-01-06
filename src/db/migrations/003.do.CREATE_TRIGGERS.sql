@@ -1,9 +1,14 @@
 CREATE TRIGGER set_timestamp
-    BEFORE UPDATE ON users
+    BEFORE UPDATE ON "Challenge"
     FOR EACH ROW
     EXECUTE PROCEDURE trigger_set_timestamp();
 
 CREATE TRIGGER set_timestamp
-    BEFORE UPDATE ON matches
+    BEFORE UPDATE ON "User"
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER set_timestamp
+    BEFORE UPDATE ON "Match"
     FOR EACH ROW
     EXECUTE PROCEDURE trigger_set_timestamp();

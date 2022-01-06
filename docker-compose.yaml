@@ -11,7 +11,7 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=${DB_HOST}
+      - DB_HOST=db
       - DB_PORT=${DB_PORT}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
@@ -21,7 +21,6 @@ services:
       - 3001:3001
     depends_on:
       - db
-    command: npm run start:debug
     volumes:
       - ./:/node
       - /node/node_modules
@@ -33,7 +32,9 @@ services:
       - tekken-league-network
     restart: always
     ports:
-      - 5432:5432
+      - "5432:5432"
+    env_file:
+      - .env
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}

@@ -7,11 +7,13 @@ import {
   MaxLength,
   MinLength,
 } from "class-validator";
-import { Match } from "../../../decorators/match.decorator";
+import { Match } from "../decorators/match.decorator";
+import { ApiProperty } from "@nestjs/swagger";
 
-const usernameRegEx = /^[a-z0-9_.]{3,}$/;
+const usernameRegEx = /^[a-zA-Z0-9_.]{3,}$/;
 
-export class RegisterDto {
+export class RegisterBodyDto {
+  @ApiProperty()
   @IsDefined({ message: "USERNAME_REQUIRED" })
   @IsString({ message: "INVALID_USERNAME" })
   @MinLength(3, { message: "USERNAME_TOO_SHORT" })
@@ -43,6 +45,8 @@ export class RegisterDto {
 
   @IsDefined({ message: "CONFIRM_PASSWORD_REQUIRED" })
   @IsString({ message: "CONFIRM_PASSWORD_INVALID" })
-  @Match(RegisterDto, (dto) => dto.password, { message: "PASSWORD_DONT_MATCH" })
+  @Match(RegisterBodyDto, (dto) => dto.password, {
+    message: "PASSWORD_DONT_MATCH",
+  })
   confirmPassword: string;
 }

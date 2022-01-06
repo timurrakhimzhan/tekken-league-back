@@ -10,7 +10,7 @@ export class HttpExceptionFilter extends BaseExceptionFilter {
       const newException = new HttpException(
         {
           statusCode: exception.getStatus(),
-          message: [exceptionResponse],
+          messages: [exceptionResponse],
         },
         exception.getStatus(),
       );
@@ -18,22 +18,22 @@ export class HttpExceptionFilter extends BaseExceptionFilter {
     }
 
     //The case in which the exception is an array or object
-    const message = (exceptionResponse as any).message;
-    if (typeof message === "string") {
+    const messages = (exceptionResponse as any).message;
+    if (typeof messages === "string") {
       const newException = new HttpException(
         {
           statusCode: exception.getStatus(),
-          message: [message],
+          messages: [messages],
         },
         exception.getStatus(),
       );
       return super.catch(newException, host);
     }
-    if (Array.isArray(message)) {
+    if (Array.isArray(messages)) {
       const newException = new HttpException(
         {
           statusCode: exception.getStatus(),
-          message,
+          messages,
         },
         exception.getStatus(),
       );
