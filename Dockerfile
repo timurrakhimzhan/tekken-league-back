@@ -1,4 +1,4 @@
-FROM node:16-slim AS development
+FROM node:16-slim AS base
 RUN apt-get -qy update && apt-get -qy install openssl procps
 
 WORKDIR /node
@@ -10,5 +10,11 @@ RUN npx prisma generate
 
 COPY . .
 
+FROM base as dev
 CMD ["npm", "run", "start:debug"]
+
+
+FROM base as prod
+RUN npm run build
+CMD ["npm", "run", "start:prod"]
 

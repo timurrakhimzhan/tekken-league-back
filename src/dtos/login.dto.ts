@@ -3,7 +3,8 @@ import { IsDefined, IsString } from "class-validator";
 
 export class LoginResDto {
   @ApiProperty()
-  token: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export class LoginBodyDto {

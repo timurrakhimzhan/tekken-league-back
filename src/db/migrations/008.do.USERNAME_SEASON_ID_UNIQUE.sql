@@ -1,0 +1,1 @@
+ALTER TABLE "UserSeason" ADD CONSTRAINT USERNAME_SEASON_ID_UNIQUE UNIQUE ("username", "seasonId");

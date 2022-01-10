@@ -4,7 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { ChallengeStatus, MatchStatus } from "@prisma/client";
 import { GetChallengesResDto } from "../../dtos/get-challenges.dto";
 import { GetChallengeResDto } from "../../dtos/get-challenge.dto";
-import { ChangeChallengeStatusDto } from "../../dtos/change-challenge-status.dto";
+import { ChangeChallengeStatusBodyDto } from "../../dtos/change-challenge-status.dto";
 
 @Injectable()
 export class ChallengeService {
@@ -69,12 +69,22 @@ export class ChallengeService {
       orderBy: {
         updatedAt: "desc",
       },
+      include: {
+        UserChallenged: true,
+        UserChallenger: true,
+      },
     });
     const items: GetChallengesResDto["items"] = challenges.map((item) => {
       return {
         id: item.id,
-        challengedUsername: item.challengedUsername,
-        challengerUsername: item.challengerUsername,
+        challenged: {
+          username: item.challengedUsername,
+          character: item.UserChallenged.character,
+        },
+        challenger: {
+          username: item.challengerUsername,
+          character: item.UserChallenger.character,
+        },
         firstTo: item.firstTo,
         status: item.status,
         date: item.createdAt,
@@ -122,7 +132,7 @@ export class ChallengeService {
   async changeChallengeStatus(
     username: string,
     id: number,
-    changeInfo: ChangeChallengeStatusDto,
+    changeInfo: ChangeChallengeStatusBodyDto,
   ) {
     const challengeFromDb = await this.prismaService.challenge.findFirst({
       where: {

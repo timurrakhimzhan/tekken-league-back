@@ -9,7 +9,7 @@ async function bootstrap() {
   await migrate();
   const app = await NestFactory.create(AppModule, new FastifyAdapter());
   app.enableCors({
-    origin: "http://localhost:3000",
+    origin: "*",
   });
   app.setGlobalPrefix("api/");
   app.useGlobalPipes(

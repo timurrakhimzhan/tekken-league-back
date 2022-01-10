@@ -3,8 +3,14 @@ import { ChallengeStatus } from "@prisma/client";
 
 class GetChallengesItemDto {
   id: number;
-  challengedUsername: string;
-  challengerUsername: string;
+  challenger: {
+    username: string;
+    character: string;
+  };
+  challenged: {
+    username: string;
+    character: string;
+  };
   firstTo: number;
   @ApiProperty({ enum: ChallengeStatus })
   status: ChallengeStatus;

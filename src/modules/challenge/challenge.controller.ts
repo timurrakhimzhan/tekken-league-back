@@ -7,13 +7,15 @@ import {
   Get,
   Param,
   Put,
+  Patch,
 } from "@nestjs/common";
 import { CreateChallengeBodyDto } from "../../dtos/create-challenge.dto";
 import { ChallengeService } from "./challenge.service";
 import { JwtGuard } from "../../guards/jwt.guard";
 import { FastifyUserRequest } from "../../types/fastify-user-request";
 import { GetChallengesResDto } from "../../dtos/get-challenges.dto";
-import { ChangeChallengeStatusDto } from "../../dtos/change-challenge-status.dto";
+import { ChangeChallengeStatusBodyDto } from "../../dtos/change-challenge-status.dto";
+import bcrypt from "bcryptjs";
 
 @Controller("challenges")
 export class ChallengeController {
@@ -45,13 +47,13 @@ export class ChallengeController {
     return this.challengeService.getChallenge(req.user.username, id);
   }
 
-  @Put("/:id")
+  @Patch("/:id")
   @UseGuards(JwtGuard)
   async changeChallengeStatus(
     @Request() req: FastifyUserRequest,
     @Param("id") id: number,
-    @Body() changeInfo: ChangeChallengeStatusDto,
-  ) {
+    @Body() changeInfo: ChangeChallengeStatusBodyDto,
+  ): Promise<void> {
     return this.challengeService.changeChallengeStatus(
       req.user.username,
       id,

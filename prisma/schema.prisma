@@ -101,6 +101,8 @@ model UserSeason {
   loses    Int    @default(0)
   Season   Season @relation(fields: [seasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_seasons_season_id")
   User     User   @relation(fields: [username], references: [username], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_seasons_username")
+
+  @@unique([username, seasonId], map: "username_season_id_unique")
 }
 
 enum ChallengeStatus {

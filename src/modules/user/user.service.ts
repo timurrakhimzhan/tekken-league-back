@@ -17,6 +17,9 @@ import {
   GetUsersResDto,
 } from "../../dtos/get-users.dto";
 import { Prisma } from "@prisma/client";
+import { GetTop10ResDto } from "../../dtos/get-top-10.dto";
+import { EditProfileBodyDto } from "../../dtos/edit-profile.dto";
+import { ChangePasswordBodyDto } from "../../dtos/change-password.dto";
 
 @Injectable()
 export class UserService {
@@ -271,5 +274,90 @@ export class UserService {
       count,
       items,
     };
+  }
+
+  async getTop10(): Promise<GetTop10ResDto> {
+    let users: Array<{ username: string; rating?: number }> = [];
+    users = await this.prismaService.userSeason.findMany({
+      orderBy: [
+        {
+          rating: "desc",
+        },
+        {
+          User: {
+            username: "asc",
+          },
+        },
+      ],
+      distinct: "username",
+      select: {
+        username: true,
+        rating: true,
+      },
+      take: 10,
+    });
+    if (users.length < 10) {
+      const usersNotPlayed = await this.prismaService.user.findMany({
+        where: {
+          UserSeasons: {
+            none: {
+              Season: {
+                isCurrent: true,
+              },
+            },
+          },
+        },
+        orderBy: { username: "asc" },
+        select: {
+          username: true,
+        },
+        take: 10 - users.length,
+      });
+      users = [...users, ...usersNotPlayed];
+    }
+
+    return {
+      count: 10,
+      items: users.map(({ username, rating }, i) => ({
+        rank: i + 1,
+        username,
+        rating: rating || 0,
+      })),
+    };
+  }
+
+  async editProfile(username: string, info: EditProfileBodyDto) {
+    await this.prismaService.user.update({
+      where: {
+        username,
+      },
+      data: {
+        character: info.character,
+        steamUrl: info.steamUrl,
+        otherInfo: info.otherInfo,
+      },
+    });
+  }
+
+  async changePassword(username: string, passwordInfo: ChangePasswordBodyDto) {
+    const salt = await bcrypt.genSalt(10);
+    const oldPasswordMatches = this.validateCredentials({
+      username,
+      password: passwordInfo.oldPassword,
+    });
+    if (!oldPasswordMatches) {
+      throw new HttpException(
+        "OLD_PASSWORD_DOESNT_MATCH",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    await this.prismaService.user.update({
+      where: {
+        username,
+      },
+      data: {
+        password: await bcrypt.hash(passwordInfo.newPassword, salt),
+      },
+    });
   }
 }

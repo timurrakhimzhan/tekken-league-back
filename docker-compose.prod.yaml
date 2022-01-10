@@ -1,13 +1,22 @@
 version: '3.8'
 
 services:
+  frontend:
+    container_name: tekken-league-front
+    networks:
+      - tekken-league-network
+    image: tekken-front
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+      - db
+      - redis
   api:
     container_name: tekken-league-api
     networks:
       - tekken-league-network
-    build:
-      context: .
-      target: dev
+    image: tekken-back
     env_file:
       - .env
     environment:
@@ -17,8 +26,6 @@ services:
       - DB_USER=${DB_USER}
       - DB_URL=${DB_URL_DOCKER}
       - DB_PASSWORD=${DB_PASSWORD}
-    ports:
-      - 3001:3001
     depends_on:
       - db
       - redis
@@ -30,8 +37,6 @@ services:
     image: redis
     networks:
       - tekken-league-network
-    ports:
-      - 6379:6379
   db:
     container_name: tekken-league-db
     image: postgres:13-alpine
