@@ -157,6 +157,12 @@ export class MatchService {
     if (match === null) {
       throw new HttpException("MATCH_NOT_FOUND", HttpStatus.BAD_REQUEST);
     }
+    if (match.status !== MatchStatus.IN_PROGRESS) {
+      throw new HttpException(
+        "MATCH_STATUS_NOT_IN_PROGRESS",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     if (
       info.p1Score > match.Challenge.firstTo ||
       info.p2Score > match.Challenge.firstTo

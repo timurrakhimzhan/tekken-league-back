@@ -234,10 +234,10 @@ export class UserService {
       }
     >;
     const users = await this.prismaService.$queryRaw<UserQueryResult>`
-      SELECT U.username, U.character, U."steamUrl", COALESCE(US.rating, 0) FROM "User" as U
+      SELECT U.username, U.character, U."steamUrl", US.rating FROM "User" as U
         LEFT JOIN "UserSeason" US on U.username = US.username
         LEFT JOIN "Season" S on S.id = US."seasonId"
-        WHERE (S."isCurrent" = TRUE OR S IS NULL)
+        WHERE (S."isCurrent" = TRUE OR US IS NULL)
         ${
           query.username
             ? Prisma.sql`AND LOWER(U.username) LIKE LOWER(${
@@ -250,7 +250,7 @@ export class UserService {
             ? Prisma.sql`AND U.character=${query.character}`
             : Prisma.empty
         }
-        ORDER BY COALESCE(US.rating, 0) desc NULLS LAST, U.username
+        ORDER BY COALESCE(US.rating, 0) desc, U.username
         OFFSET ${perPage * (page - 1)} LIMIT ${perPage}
     `;
     const items: Array<GetUsersItemDto> = await Promise.all(
@@ -266,7 +266,7 @@ export class UserService {
         };
         return {
           ...info,
-          rating: user.rating || 0,
+          rating: user.rating ?? 0,
         };
       }),
     );
@@ -277,53 +277,7 @@ export class UserService {
   }
 
   async getTop10(): Promise<GetTop10ResDto> {
-    let users: Array<{ username: string; rating?: number }> = [];
-    users = await this.prismaService.userSeason.findMany({
-      orderBy: [
-        {
-          rating: "desc",
-        },
-        {
-          User: {
-            username: "asc",
-          },
-        },
-      ],
-      distinct: "username",
-      select: {
-        username: true,
-        rating: true,
-      },
-      take: 10,
-    });
-    if (users.length < 10) {
-      const usersNotPlayed = await this.prismaService.user.findMany({
-        where: {
-          UserSeasons: {
-            none: {
-              Season: {
-                isCurrent: true,
-              },
-            },
-          },
-        },
-        orderBy: { username: "asc" },
-        select: {
-          username: true,
-        },
-        take: 10 - users.length,
-      });
-      users = [...users, ...usersNotPlayed];
-    }
-
-    return {
-      count: 10,
-      items: users.map(({ username, rating }, i) => ({
-        rank: i + 1,
-        username,
-        rating: rating || 0,
-      })),
-    };
+    return this.getUsers({ perPage: 10, page: 1 });
   }
 
   async editProfile(username: string, info: EditProfileBodyDto) {
