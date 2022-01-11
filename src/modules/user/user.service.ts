@@ -79,58 +79,32 @@ export class UserService {
   }
 
   async getUserRank(username: string, rating?: number | null): Promise<number> {
-    if (rating) {
-      const countRatingLess = await this.prismaService.userSeason.count({
-        where: {
-          Season: {
-            isCurrent: true,
-          },
-          rating: {
-            gt: rating,
-          },
-        },
-      });
-      const countRatingEqual = await this.prismaService.userSeason.count({
-        where: {
-          Season: {
-            isCurrent: true,
-          },
-          rating,
-          username: {
-            lt: username,
-          },
-        },
-      });
-      return countRatingLess + countRatingEqual + 1;
-    }
-    const count = await this.prismaService.user.count({
-      where: {
-        OR: [
-          {
-            UserSeasons: {
-              some: {
-                Season: {
-                  isCurrent: true,
-                },
-              },
-            },
-          },
-          {
-            UserSeasons: {
-              none: {
-                Season: {
-                  isCurrent: true,
-                },
-              },
-            },
-            username: {
-              lt: username,
-            },
-          },
-        ],
-      },
-    });
-    return count + 1;
+    const [{ count: countRatingLess }] = await this.prismaService.$queryRaw<
+      {
+        count: number;
+      }[]
+    >`
+        SELECT COUNT(*) FROM "User" as U
+        LEFT JOIN "UserSeason" US on U.username = US.username
+        LEFT JOIN "Season" S on S.id = US."seasonId"
+        WHERE (S."isCurrent" = TRUE OR US IS NULL) AND (COALESCE(US.rating, 0) > ${
+          rating ?? 0
+        });
+    `;
+    const [{ count: countRatingEqual }] = await this.prismaService.$queryRaw<
+      {
+        count: number;
+      }[]
+    >`
+        SELECT COUNT(*) FROM "User" as U
+        LEFT JOIN "UserSeason" US on U.username = US.username
+        LEFT JOIN "Season" S on S.id = US."seasonId"
+        WHERE (S."isCurrent" = TRUE OR US IS NULL)
+        AND (COALESCE(US.rating, 0)=${rating ?? 0}
+        AND U.username<${username}
+  );
+    `;
+    return countRatingLess + countRatingEqual + 1;
   }
 
   async getProfile(username: string): Promise<GetProfileResDto> {
