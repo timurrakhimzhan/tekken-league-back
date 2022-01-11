@@ -18,7 +18,7 @@ services:
       - DB_URL=${DB_URL_DOCKER}
       - DB_PASSWORD=${DB_PASSWORD}
     ports:
-      - 3001:3001
+      - "3001:3001"
     depends_on:
       - db
       - redis
@@ -31,7 +31,7 @@ services:
     networks:
       - tekken-league-network
     ports:
-      - 6379:6379
+      - "6379:6379"
   db:
     container_name: tekken-league-db
     image: postgres:13-alpine

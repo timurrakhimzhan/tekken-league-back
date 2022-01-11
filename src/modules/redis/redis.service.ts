@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import Redis from "ioredis";
+import { TWENTY_FOUR_HOURS } from "../../constants";
 
 @Injectable()
 export class RedisService {
@@ -8,7 +9,7 @@ export class RedisService {
   });
 
   async invalidateToken(token: string) {
-    await this.redis.set(token, "INVALID", "EX", 24 * 60 * 60);
+    await this.redis.set(token, "INVALID", "EX", TWENTY_FOUR_HOURS);
   }
 
   async isTokenValid(token: string): Promise<boolean> {

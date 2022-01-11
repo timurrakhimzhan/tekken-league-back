@@ -7,11 +7,13 @@ services:
       - tekken-league-network
     image: tekken-front
     ports:
-      - "3000:80"
+      - "80:80"
     depends_on:
       - api
       - db
       - redis
+    labels:
+      "com.centurylinklabs.watchtower.enable": true
   api:
     container_name: tekken-league-api
     networks:
@@ -32,6 +34,8 @@ services:
     volumes:
       - ./:/node
       - /node/node_modules
+    labels:
+      "com.centurylinklabs.watchtower.enable": true
   redis:
     container_name: tekken-league-redis
     image: redis

@@ -234,7 +234,7 @@ export class UserService {
       }
     >;
     const users = await this.prismaService.$queryRaw<UserQueryResult>`
-      SELECT U.username, U.character, U."steamUrl", US.rating FROM "User" as U
+      SELECT U.username, U.character, U."steamUrl", COALESCE(US.rating, 0) FROM "User" as U
         LEFT JOIN "UserSeason" US on U.username = US.username
         LEFT JOIN "Season" S on S.id = US."seasonId"
         WHERE (S."isCurrent" = TRUE OR S IS NULL)
@@ -250,7 +250,7 @@ export class UserService {
             ? Prisma.sql`AND U.character=${query.character}`
             : Prisma.empty
         }
-        ORDER BY US.rating desc NULLS LAST, U.username
+        ORDER BY COALESCE(US.rating, 0) desc NULLS LAST, U.username
         OFFSET ${perPage * (page - 1)} LIMIT ${perPage}
     `;
     const items: Array<GetUsersItemDto> = await Promise.all(
