@@ -141,6 +141,10 @@ export class MatchService {
         declineComment: info.comment,
         declinedBy: username,
         status: MatchStatus.DECLINED,
+        p1Score: null,
+        p2Score: null,
+        submittedBy: null,
+        resultSubmittedAt: null,
       },
     });
   }
